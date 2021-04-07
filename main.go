@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	authBusinessLogic "github.com/konaro/line-notify-service/businesslogic/auth"
 	"github.com/konaro/line-notify-service/client/linenotify"
 	"github.com/konaro/line-notify-service/jwtutil"
@@ -23,91 +23,75 @@ func main() {
 }
 
 func handleRequests() {
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
 
-	mux.Handle("/security", middleware.AuthHandler(http.HandlerFunc(security)))
-	mux.Handle("/verify", middleware.AuthHandler(http.HandlerFunc(verify)))
-	mux.HandleFunc("/login", login)
-	mux.HandleFunc("/line-auth", lineAuth)
-	mux.HandleFunc("/callback", callback)
-	log.Fatal(http.ListenAndServe(":10000", mux))
+	r.Handle("/security", middleware.AuthHandler(http.HandlerFunc(security))).Methods("PATCH")
+	r.Handle("/verify", middleware.AuthHandler(http.HandlerFunc(verify))).Methods("GET")
+	r.HandleFunc("/login", login).Methods("POST")
+	r.HandleFunc("/line-auth", lineAuth).Methods("GET")
+	r.HandleFunc("/callback", callback).Methods("POST")
+
+	http.Handle("/", r)
+	http.ListenAndServe(":10000", r)
 }
 
 // login handler
 func login(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "POST":
-		var login model.Login
+	var login model.Login
 
-		err := json.NewDecoder(r.Body).Decode(&login)
+	err := json.NewDecoder(r.Body).Decode(&login)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result := authBusinessLogic.CheckSecurity(login.Account, login.Password)
+
+	if result {
+		// generate token
+		token, err := jwtutil.GenerateToken(login.Account)
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 
-		result := authBusinessLogic.CheckSecurity(login.Account, login.Password)
-
-		if result {
-			// generate token
-			token, err := jwtutil.GenerateToken(login.Account)
-
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(model.Response{Data: token, Success: true})
-			return
-		} else {
-			w.WriteHeader(http.StatusUnauthorized)
-		}
-
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(model.Response{Data: token, Success: true})
+		return
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 }
 
 func security(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "PATCH":
-		var entity model.ResetPassword
+	var entity model.ResetPassword
 
-		err := json.NewDecoder(r.Body).Decode(&entity)
+	err := json.NewDecoder(r.Body).Decode(&entity)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// get claims account from context
+	account := r.Context().Value("account").(string)
+
+	// check old password valid
+	if authBusinessLogic.CheckSecurity(account, entity.Password) {
+		err = authBusinessLogic.UpdatePassword(entity.NewPassword)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		// get claims account from context
-		account := r.Context().Value("account").(string)
-
-		// check old password valid
-		if authBusinessLogic.CheckSecurity(account, entity.Password) {
-			err = authBusinessLogic.UpdatePassword(entity.NewPassword)
-
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-		} else {
-			w.WriteHeader(http.StatusForbidden)
-		}
-
-		return
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
+	} else {
+		w.WriteHeader(http.StatusForbidden)
 	}
 }
 
 func verify(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		return
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
+	return
 }
 
 func lineAuth(w http.ResponseWriter, r *http.Request) {
