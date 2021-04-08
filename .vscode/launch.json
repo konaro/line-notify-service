@@ -17,6 +17,7 @@
         "secret": "JQMrOFsSZYmeY5nv8WUH03AW0ATh8jqMQjwdBiv9wJj",
         "host": "https://8a711a9b0bda.ngrok.io",
         "jwtSecret": "1234secret1234",
+        "sqlite__filepath": "./database.db",
         "redis__addr": "localhost:6379",
         "redis__password": "",
       },
