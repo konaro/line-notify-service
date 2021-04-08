@@ -15,7 +15,7 @@
       "env": {
         "clientId": "Q9tLkY11HKOKUEDRn5IDki",
         "secret": "JQMrOFsSZYmeY5nv8WUH03AW0ATh8jqMQjwdBiv9wJj",
-        "host": "https://b4a887fc7d5d.ngrok.io",
+        "host": "https://8a711a9b0bda.ngrok.io",
         "jwtSecret": "1234secret1234",
         "redis__addr": "localhost:6379",
         "redis__password": "",

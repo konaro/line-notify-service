@@ -13,6 +13,7 @@ func AuthHandler(next http.Handler) http.Handler {
 		auth := r.Header.Get("Authorization")
 		split := strings.Split(auth, "Bearer ")
 
+		// check token exists
 		if len(split) < 2 {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
