@@ -4,12 +4,15 @@ This is an API service for line-notify (https://notify-bot.line.me/zh_TW)
 
 ## Using Technique
 
-- Go
+- Go:
+  - Use Go routine to push notifications synchronous.
+  - Use JWT for admin authentication.
 - Sqlite
+  - Use file base DB to store client tokens.
 
 
 
-**As client (receiver), the only step is using line OAuth to registry access token.**
+**As a client (message receiver), the only step is using line OAuth to registry access token.**
 
 **The Path is  {host}/oauth/line**
 
@@ -17,4 +20,4 @@ This is an API service for line-notify (https://notify-bot.line.me/zh_TW)
 
 ## APIs
 
-There are multiple APIs for administrators such as login, update password, list/delete tokens...etc.
+There are multiple APIs for administrators such as login, update password, list/delete tokens, push notify.
