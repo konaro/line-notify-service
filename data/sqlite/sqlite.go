@@ -8,7 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var dbFilePath = "./database.db"
+var dbFilePath = os.Getenv("sqlite__filepath")
 
 func Connect() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbFilePath)
