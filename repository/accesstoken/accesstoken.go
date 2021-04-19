@@ -31,6 +31,34 @@ func Add(token string, time time.Time) {
 	}
 }
 
+func Get(id int) data.AccessToken {
+	var token data.AccessToken
+
+	db, err := sqlite.Connect()
+	if err != nil {
+		return token
+	}
+
+	defer db.Close()
+
+	rows, err := db.Query("SELECT Id, Token FROM AccessToken WHERE id = ?;", id)
+
+	if err != nil {
+		log.Fatal("query failed.", err)
+		return token
+	}
+
+	for rows.Next() {
+		err = rows.Scan(&token.Id, &token.Token)
+
+		if err != nil {
+			log.Fatal("fetch data error.", err)
+		}
+	}
+
+	return token
+}
+
 func GetList(limit, offset int) []data.AccessToken {
 	var tokens []data.AccessToken
 
@@ -44,7 +72,7 @@ func GetList(limit, offset int) []data.AccessToken {
 	rows, err := db.Query("SELECT Id, Token, IssueAt FROM AccessToken LIMIT ? OFFSET ?;", limit, offset)
 
 	if err != nil {
-		log.Fatal("query faild.", err)
+		log.Fatal("query failed.", err)
 		return tokens
 	}
 
