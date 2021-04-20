@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -15,6 +14,11 @@ import (
 var clientId = os.Getenv("clientId")
 var secret = os.Getenv("secret")
 var host = os.Getenv("host")
+
+type notifyMessage struct {
+	Response *model.LineNotifyGenericResponse
+	Id       int
+}
 
 func LineAuthHandler(w http.ResponseWriter, r *http.Request) {
 	url := linenotify.GetAuthorizeUrl(clientId, host+"/api/line-callback")
@@ -47,22 +51,28 @@ func LineNotifyHandler(w http.ResponseWriter, r *http.Request) {
 	// get all tokens
 	tokens := accesstoken.GetAllTokens()
 
-	requests := make(chan []byte)
+	requests := make(chan *notifyMessage)
 
 	var wg sync.WaitGroup
 	wg.Add(len(tokens))
 
 	for _, token := range tokens {
-		go func(notify model.Notify, token string) {
+		go func(notify model.Notify, token string, id int) {
 			defer wg.Done()
 			res, _ := linenotify.PushNotification(notify, token)
-			requests <- res
-		}(notify, token)
+			body := &model.LineNotifyGenericResponse{}
+			json.Unmarshal(res, body)
+			requests <- &notifyMessage{body, id}
+		}(notify, token.Token, token.Id)
 	}
 
 	go func() {
 		for response := range requests {
-			fmt.Println(string(response))
+			// check token valid
+			if response.Response.Status == 401 {
+				// delete invalid token
+				accesstoken.Delete(response.Id)
+			}
 		}
 	}()
 

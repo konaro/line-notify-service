@@ -19,7 +19,7 @@ func GetList(limit, offset int) []data.AccessToken {
 	return repository.GetList(limit, offset)
 }
 
-func GetAllTokens() []string {
+func GetAllTokens() []data.AccessToken {
 	return repository.GetAllTokens()
 }
 
