@@ -32,7 +32,7 @@ func TokenRevokeHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	response := &model.RevokeTokenResponse{}
+	response := &model.LineNotifyGenericResponse{}
 	json.Unmarshal(resp, response)
 
 	switch response.Status {

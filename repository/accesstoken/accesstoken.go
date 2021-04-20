@@ -89,8 +89,8 @@ func GetList(limit, offset int) []data.AccessToken {
 	return tokens
 }
 
-func GetAllTokens() []string {
-	var tokens []string
+func GetAllTokens() []data.AccessToken {
+	var tokens []data.AccessToken
 
 	db, err := sqlite.Connect()
 	if err != nil {
@@ -99,7 +99,7 @@ func GetAllTokens() []string {
 
 	defer db.Close()
 
-	rows, err := db.Query("SELECT Token FROM AccessToken;")
+	rows, err := db.Query("SELECT Id, Token FROM AccessToken;")
 
 	if err != nil {
 		log.Fatal("query faild.", err)
@@ -107,8 +107,8 @@ func GetAllTokens() []string {
 	}
 
 	for rows.Next() {
-		var token string
-		err = rows.Scan(&token)
+		var token data.AccessToken
+		err = rows.Scan(&token.Id, &token.Token)
 		if err != nil {
 			log.Fatal("fetch data error.", err)
 		} else {
