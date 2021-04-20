@@ -26,11 +26,23 @@ func TokenRevokeHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := accesstoken.Get(id)
 
-	linenotify.RevokeAccessToken(token.Token)
-
-	err = accesstoken.Delete(id)
+	resp, err := linenotify.RevokeAccessToken(token.Token)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	response := &model.RevokeTokenResponse{}
+	json.Unmarshal(resp, response)
+
+	switch response.Status {
+	case 200:
+		err = accesstoken.Delete(id)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	default:
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 }

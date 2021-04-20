@@ -17,7 +17,7 @@ var secret = os.Getenv("secret")
 var host = os.Getenv("host")
 
 func LineAuthHandler(w http.ResponseWriter, r *http.Request) {
-	url := linenotify.GetAuthorizeUrl(clientId, host+"/line-callback")
+	url := linenotify.GetAuthorizeUrl(clientId, host+"/api/line-callback")
 	http.Redirect(w, r, url, http.StatusSeeOther)
 }
 
@@ -25,7 +25,7 @@ func LineCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	code := r.FormValue("code")
 
-	token := linenotify.GetAccessToken(code, clientId, secret, host+"/line-callback")
+	token := linenotify.GetAccessToken(code, clientId, secret, host+"/api/line-callback")
 
 	response := &model.TokenResponse{}
 	json.Unmarshal(token, response)

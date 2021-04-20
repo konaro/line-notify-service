@@ -23,7 +23,7 @@ func handleRequests() {
 	apiRouter.Handle("/verify", middleware.AuthHandler(http.HandlerFunc(api.VerifyHandler))).Methods("GET")
 	apiRouter.Handle("/tokens", middleware.AuthHandler(http.HandlerFunc(api.TokenHandler))).Methods("GET")
 	apiRouter.Handle("/tokens/{id}", middleware.AuthHandler(http.HandlerFunc(api.TokenHandler))).Methods("GET")
-	apiRouter.Handle("/tokens/revoke/{id}", middleware.AuthHandler(http.HandlerFunc(api.TokenRevokeHandler))).Methods("DELETE")
+	apiRouter.Handle("/tokens/{id}", middleware.AuthHandler(http.HandlerFunc(api.TokenRevokeHandler))).Methods("DELETE")
 	apiRouter.Handle("/line-notify", middleware.AuthHandler(http.HandlerFunc(api.LineNotifyHandler))).Methods("POST")
 	apiRouter.HandleFunc("/login", api.LoginHandler).Methods("POST")
 	apiRouter.HandleFunc("/line-callback", api.LineCallbackHandler).Methods("POST")
