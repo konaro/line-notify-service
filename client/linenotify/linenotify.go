@@ -15,6 +15,7 @@ var client = &http.Client{}
 const authorizeEndpoint = "https://notify-bot.line.me/oauth/authorize"
 const tokenEndpoint = "https://notify-bot.line.me/oauth/token"
 const notifyEndpoint = "https://notify-api.line.me/api/notify"
+const tokenRevokeEndpoint = "https://notify-api.line.me/api/revoke"
 
 func GetAuthorizeUrl(clientId, redirectUri string) string {
 	query := url.Values{
@@ -48,7 +49,6 @@ func GetAccessToken(code, clientId, clientSecret, redirectUri string) []byte {
 	if err != nil {
 		return nil
 	}
-
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -58,6 +58,29 @@ func GetAccessToken(code, clientId, clientSecret, redirectUri string) []byte {
 	}
 
 	return body
+}
+
+func RevokeAccessToken(token string) ([]byte, error) {
+	form := url.Values{}
+	req, _ := http.NewRequest("POST", tokenRevokeEndpoint, strings.NewReader(form.Encode()))
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
 
 func PushNotification(message model.Notify, token string) ([]byte, error) {
@@ -76,7 +99,6 @@ func PushNotification(message model.Notify, token string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)

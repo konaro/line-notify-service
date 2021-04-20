@@ -11,6 +11,10 @@ func Add(token string) {
 	repository.Add(token, time.Now())
 }
 
+func Get(id int) data.AccessToken {
+	return repository.Get(id)
+}
+
 func GetList(limit, offset int) []data.AccessToken {
 	return repository.GetList(limit, offset)
 }
